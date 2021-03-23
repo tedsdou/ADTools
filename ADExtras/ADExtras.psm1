@@ -444,3 +444,15 @@ Function Find-ParentOU
     Param([Parameter(Mandatory)]$Name)
     (Get-ADObject -Filter {Name -eq $Name}).DistinguishedName -replace '^CN=\w+,'
 }
+
+Function Get-ADGroupMemberList
+{
+    [CmdletBinding()]
+    param ($GroupName)
+    try {
+        (Get-ADGroup -Identity $GroupName -Properties Members).Members
+    }
+    catch {
+        "ERROR: $($_.Exception.Message)"
+    }
+}
