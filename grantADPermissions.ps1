@@ -1,4 +1,4 @@
-Function Grant-ADPermission{
+Function Grant-ADPermission {
     <#
     .SYNOPSIS
         Add Access Control Entry on Active Directory Organizational Unit.
@@ -47,14 +47,14 @@ Function Grant-ADPermission{
         [System.DirectoryServices.ActiveDirectorySecurityInheritance]$Inheritance,
 
         [Parameter(Mandatory = $true,
-            ValueFromPipeline=$true,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [String[]]$OrgUnitDN,
 
         [Switch]$PassThru
     )
 
-    DynamicParam{
+    DynamicParam {
         #region ObjectType
         # Set the dynamic parameters' name
         $ParameterName = 'ObjectType'
@@ -78,12 +78,12 @@ Function Grant-ADPermission{
         $MasterGuidMap = @{}
         $SchemaGuidMapSearcher = [ADSISearcher]'(schemaidguid=*)'
         $SchemaGuidMapSearcher.SearchRoot = [ADSI]"LDAP://CN=Schema,$(([ADSI]"LDAP://$DomainName/RootDSE").configurationNamingContext)"
-        $null = $SchemaGuidMapSearcher.PropertiesToLoad.AddRange(('ldapdisplayname','schemaidguid'))
+        $null = $SchemaGuidMapSearcher.PropertiesToLoad.AddRange(('ldapdisplayname', 'schemaidguid'))
         $SchemaGuidMapSearcher.PageSize = 10000
-        $SchemaGuidMapSearcher.FindAll() | Foreach-Object -Process {
+        $SchemaGuidMapSearcher.FindAll() | ForEach-Object -Process {
             #$MasterGuidMap[(New-Object -TypeName Guid -ArgumentList (,$_.properties.schemaidguid[0])).Guid] = "$($_.properties.ldapdisplayname)"
-            $MasterGuidMap["$($_.properties.ldapdisplayname)"] = (New-Object -TypeName Guid -ArgumentList (,$_.properties.schemaidguid[0])).Guid
-        } -End {$MasterGuidMap['null'] = [Guid]'00000000-0000-0000-0000-000000000000'}
+            $MasterGuidMap["$($_.properties.ldapdisplayname)"] = (New-Object -TypeName Guid -ArgumentList (, $_.properties.schemaidguid[0])).Guid
+        } -End { $MasterGuidMap['null'] = [Guid]'00000000-0000-0000-0000-000000000000' }
         $DynamicParamValue = $MasterGuidMap.Keys
 
         #$DynamicParamValue
@@ -121,12 +121,12 @@ Function Grant-ADPermission{
         #$MasterGuidMap = @{}
         $RightsGuidMapSearcher = [ADSISearcher]'(&(objectclass=controlAccessRight)(rightsguid=*))'
         $RightsGuidMapSearcher.SearchRoot = [ADSI]"LDAP://CN=Schema,$(([ADSI]"LDAP://$DomainName/RootDSE").configurationNamingContext)"
-        $null = $RightsGuidMapSearcher.PropertiesToLoad.AddRange(('displayname','rightsGuid'))
+        $null = $RightsGuidMapSearcher.PropertiesToLoad.AddRange(('displayname', 'rightsGuid'))
         $RightsGuidMapSearcher.PageSize = 10000
-        $RightsGuidMapSearcher.FindAll() | Foreach-Object -Process {
+        $RightsGuidMapSearcher.FindAll() | ForEach-Object -Process {
             #$MasterGuidMap[(New-Object -TypeName Guid -ArgumentList (,$_.properties.rightsguid[0])).Guid] = "$($_.properties.displayname)"
-            $MasterGuidMap["$($_.properties.displayname)"] = (New-Object -TypeName Guid -ArgumentList (,$_.properties.rightsguid[0])).Guid
-        } -End {$MasterGuidMap['null'] = [Guid]'00000000-0000-0000-0000-000000000000'}
+            $MasterGuidMap["$($_.properties.displayname)"] = (New-Object -TypeName Guid -ArgumentList (, $_.properties.rightsguid[0])).Guid
+        } -End { $MasterGuidMap['null'] = [Guid]'00000000-0000-0000-0000-000000000000' }
         $DynamicParamValue = $MasterGuidMap.Keys
 
         #$DynamicParamValue
@@ -144,7 +144,7 @@ Function Grant-ADPermission{
         $RuntimeParameterDictionary
     }
 
-    Begin{
+    Begin {
         #Dynamic Param
         $PsBoundParameters.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Key -Value $_.Value -ErrorAction 'SilentlyContinue' }
 
@@ -152,26 +152,26 @@ Function Grant-ADPermission{
         Write-Verbose -Message 'Preparing Access Control Entry attributes...'
         [System.Security.Principal.SecurityIdentifier]$Identity = (New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $(([ADSI]"LDAP://$GroupDistinguishedName").ObjectSid), 0).value #Get nice SID format
         [Guid]$InheritedObjectTypeValue = $MasterGuidMap[$InheritedObjectType]
-        [Guid]$ObjectTypeValue          = $MasterGuidMap[$ObjectType]
+        [Guid]$ObjectTypeValue = $MasterGuidMap[$ObjectType]
 
         #Create the Access Control Entry
         Write-Verbose -Message 'Creating Access Control Entry...'
-        $NewAce = New-Object System.DirectoryServices.ActiveDirectoryAccessRule -ArgumentList $Identity,$AdRights,$AccessControlType,$ObjectTypeValue,$Inheritance,$InheritedObjectTypeValue
+        $NewAce = New-Object System.DirectoryServices.ActiveDirectoryAccessRule -ArgumentList $Identity, $AdRights, $AccessControlType, $ObjectTypeValue, $Inheritance, $InheritedObjectTypeValue
     }
-    Process{
-        try{
+    Process {
+        try {
             Write-Verbose -Message "Connecting to $OrgUnitDN"
-            $ADObject = [ADSI]("LDAP://" + $OrgUnitDN)
+            $ADObject = [ADSI]('LDAP://' + $OrgUnitDN)
             $ADObject.ObjectSecurity.AddAccessRule($NewAce)
             Write-Verbose -Message 'Applying Access Control Entry'
             $ADObject.CommitChanges()
-            if($PassThru){
+            if ($PassThru) {
                 $ADObject.ObjectSecurity.Access
             }
         }
-        catch{
+        catch {
             throw "$OrgUnitDN $_"
         }
     }
-    End{}
+    End {}
 }

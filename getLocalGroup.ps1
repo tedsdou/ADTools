@@ -13,7 +13,7 @@ Function Get-LocalGroup {
         Function  Get-LocalGroupMember {
             Param  ($Group)
             $group.Invoke('members') | ForEach-Object {
-                $_.GetType().InvokeMember("Name", 'GetProperty', $null, $_, $null)
+                $_.GetType().InvokeMember('Name', 'GetProperty', $null, $_, $null)
             }
         }
     }
@@ -30,7 +30,7 @@ Function Get-LocalGroup {
                     }
                 }
                 Else {
-                    Write-Verbose  "Scanning all groups"
+                    Write-Verbose  'Scanning all groups'
                     $groups = $adsi.Children | Where-Object { $_.SchemaClassName -eq 'group' }
                 }
                 If ($groups) {
@@ -44,7 +44,7 @@ Function Get-LocalGroup {
                     }
                 }
                 Else {
-                    Throw  "No groups found!"
+                    Throw  'No groups found!'
                 }
             }
             Catch {

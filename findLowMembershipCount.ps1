@@ -35,52 +35,42 @@ of the Sample Code.
 #>
 
 #requires -Version 3 -Modules ActiveDirectory
-Try
-{
+Try {
     $domains = (Get-ADForest).Domains
 }
-Catch
-{
+Catch {
     Throw "Unable to query domains!! Exception: $($_.Exception.Message)"
 }
 $report = $null
-Foreach($domain in $domains){
+Foreach ($domain in $domains) {
     $dNames = @()
     $dNames += $domain
-    If((Get-ADDomain -Identity $domain).ChildDomains)
-    {
+    If ((Get-ADDomain -Identity $domain).ChildDomains) {
         [array]$cDomain = (Get-ADDomain -Identity $domain).ChildDomains
-        foreach($c in $cDomain){ $dNames += $c }
+        foreach ($c in $cDomain) { $dNames += $c }
     }
 }
-Foreach($d in $dNames)
-{
-    Try
-    {
+Foreach ($d in $dNames) {
+    Try {
         $groups = Get-ADGroup -Server (Get-ADDomain -Identity $d).PDCEmulator -Filter *
     }
-    Catch
-    {
+    Catch {
     }
-    foreach ($group in $groups)
-    {
-        Try
-        {
+    foreach ($group in $groups) {
+        Try {
             $grpCount = (Get-ADGroupMember -Identity $group).Count
         }
-        Catch
-        {
+        Catch {
         }
-        If($grpCount -le 1)
-        {
+        If ($grpCount -le 1) {
             $props = @{
-                        'DomainName' = $d
-                        'GroupName' = $group.Name
-                        'GroupCount' = $grpCount
-                    }
+                'DomainName' = $d
+                'GroupName'  = $group.Name
+                'GroupCount' = $grpCount
+            }
             $report += @(New-Object -TypeName PSCustomObject -Property $props)
         }
     }
 
 }
-$report | Format-Table -Property 'DomainName','GroupName','GroupCount' -AutoSize
+$report | Format-Table -Property 'DomainName', 'GroupName', 'GroupCount' -AutoSize

@@ -33,15 +33,15 @@
 #>
 #Requires -Module ActiveDirectory -Version 3 
 $LogFile = "$(Split-Path -Path $MyInvocation.MyCommand.Path -Parent)\O365-GroupSync.log"
-If(-not(Get-Module -Name ActiveDirectory)){
+If (-not(Get-Module -Name ActiveDirectory)) {
     Import-Module -Name ActiveDirectory
 }
 
 Add-Content -Path $LogFile -Value "`n`nScript started by $($env:USERNAME) at $(Get-Date)`n$('='*50)"
 $OUs = @()
 try {
-    'Office365-Faculty','Office365-Staff','Office365-Students' | foreach-object
-    $OUs += Get-ADOrganizationalUnit -Filter {Name -like "$_"}
+    'Office365-Faculty', 'Office365-Staff', 'Office365-Students' | ForEach-Object
+    $OUs += Get-ADOrganizationalUnit -Filter { Name -like "$_" }
 }
 catch {
     $Message = "ERROR: Unable to find Office365 groups | Message: $($_.Exception.Message)"
@@ -51,11 +51,11 @@ catch {
 
 foreach ($OU in $OUs) {
     switch ($OU.Name) {
-        'Office365-Faculty' {$groupName = 'DUO_Bioraft','DUO_Dropbox','DUO_Zoom','DUO_Faculty','DUO_DocuSign'}
-        'Office365-Staff'   {$groupName = 'DUO_Dropbox','DUO_Zoom','DUO_Staff','DUO_DocuSign'}
-        'Office365-Student' {$groupName = 'DUO_Students','DUO_Zoom'}    
+        'Office365-Faculty' { $groupName = 'DUO_Bioraft', 'DUO_Dropbox', 'DUO_Zoom', 'DUO_Faculty', 'DUO_DocuSign' }
+        'Office365-Staff' { $groupName = 'DUO_Dropbox', 'DUO_Zoom', 'DUO_Staff', 'DUO_DocuSign' }
+        'Office365-Student' { $groupName = 'DUO_Students', 'DUO_Zoom' }    
     }
-    Foreach($Group in $groupName){
+    Foreach ($Group in $groupName) {
         try {
             $groupDN = Get-ADGroup -Identity $Group  
         }
@@ -86,19 +86,19 @@ foreach ($OU in $OUs) {
     }
     
     #Removing from other DUO Security Groups
-    $usrList | ForEach-Object{
-        $removeList = $_.memberOf | Where-Object {($_ -match 'DUO_') -and ($_ -notmatch $groupDN.DistinguishedName)}
+    $usrList | ForEach-Object {
+        $removeList = $_.memberOf | Where-Object { ($_ -match 'DUO_') -and ($_ -notmatch $groupDN.DistinguishedName) }
         $userID = $_.DistinguishedName
-            $removeList | ForEach-Object {
-                try {
-                    Remove-ADGroupMember -Identity $_ -Members $userID -Confirm:$false
-                    Add-Content -Path $LogFile -Value "SUCCESS:  Removed $userID from $_"    
-                }
-                catch {
-                    $Message = "ERRROR: Unable to remove $userID from group | MESSAGE: $($_.Exception.Message)"
-                    Write-Warning -Message $Message
-                    Add-Content -Path $LogFile -Value $Message
-                }
+        $removeList | ForEach-Object {
+            try {
+                Remove-ADGroupMember -Identity $_ -Members $userID -Confirm:$false
+                Add-Content -Path $LogFile -Value "SUCCESS:  Removed $userID from $_"    
             }
+            catch {
+                $Message = "ERRROR: Unable to remove $userID from group | MESSAGE: $($_.Exception.Message)"
+                Write-Warning -Message $Message
+                Add-Content -Path $LogFile -Value $Message
+            }
+        }
     }
 }

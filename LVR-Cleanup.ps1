@@ -6,15 +6,15 @@
 #>
 
 #List all of the the legacy members and their associated group
-$group = Get-ADGroup -Filter *  |
-    Get-ADReplicationAttributeMetadata  -Properties Member -ShowAllLinkedValues |
-    Where-Object {$_.Version -eq 0} | Select-Object @{n="LEGACY";e={$_.AttributeValue}},@{n="Group";e={$_.Object}}
+$group = Get-ADGroup -Filter * |
+Get-ADReplicationAttributeMetadata  -Properties Member -ShowAllLinkedValues |
+Where-Object { $_.Version -eq 0 } | Select-Object @{n = 'LEGACY'; e = { $_.AttributeValue } }, @{n = 'Group'; e = { $_.Object } }
 
-Foreach($g in $group){
+Foreach ($g in $group) {
     #Check group for LEGACY members
     $DN = $g.Group
-    $NonLVRMembers =  Get-ADReplicationAttributeMetadata -Object $DN -Properties Member -ShowAllLinkedValues | 
-        Where-Object {$_.Version -eq 0}
+    $NonLVRMembers = Get-ADReplicationAttributeMetadata -Object $DN -Properties Member -ShowAllLinkedValues | 
+    Where-Object { $_.Version -eq 0 }
 
     #Remove the LEGACY members from a particular group
     Remove-ADGroupMember -Identity $DN -Members ($NonLVRMembers).AttributeValue
