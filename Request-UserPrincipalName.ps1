@@ -15,11 +15,15 @@ function Request-UserPrincipalName {
         For assistance with Regular Expression:  Get-Help about_Regular_Expressions
         Regular Expression Cheat Sheet:
         \d       -> decimal digit
+        .        -> any character
+        ^        -> start of string
         $        -> end of string
+        +        -> one or more
         $Matches -> anything that matched
     #>
     [CmdletBinding()]
     param (
+        [ValidatePattern("^.+@.+$")]
         [string[]]$UserPrincipalName
     )
     process {
