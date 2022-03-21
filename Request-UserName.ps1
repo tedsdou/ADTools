@@ -19,12 +19,13 @@ function Request-UserName {
     #>
     [CmdletBinding()]
     param (
-        [string[]]$UserName
+        [string[]]$UserName,
+        $Domain = $env:USERDNSDOMAIN
     )
     process {
         foreach ($User in $UserName) {
             try {
-                $NotAvailable = Get-ADUser -Identity $User
+                $NotAvailable = Get-ADUser -Identity $User -Server $Domain
             }
             catch {
                 [PSCustomObject]@{
@@ -44,7 +45,7 @@ function Request-UserName {
                 $NotAvailable = $null
                 $i++
                 try {
-                    $NotAvailable = Get-ADUser -Identity $User$i
+                    $NotAvailable = Get-ADUser -Identity $User$i -Server $Domain
                 }
                 catch {
                     [PSCustomObject]@{

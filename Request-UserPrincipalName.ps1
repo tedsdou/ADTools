@@ -24,12 +24,13 @@ function Request-UserPrincipalName {
     [CmdletBinding()]
     param (
         [ValidatePattern("^.+@.+$")]
-        [string[]]$UserPrincipalName
+        [string[]]$UserPrincipalName,
+        $Domain = $env:USERDNSDOMAIN
     )
     process {
         foreach ($User in $UserPrincipalName) {
             try {
-                $NotAvailable = Get-ADUser -Filter {UserPrincipalName -eq $UserPrincipalName}
+                $NotAvailable = Get-ADUser -Filter {UserPrincipalName -eq $UserPrincipalName} -Server $Domain
             }
             catch {
                 [PSCustomObject]@{
@@ -49,7 +50,7 @@ function Request-UserPrincipalName {
                 $NotAvailable = $null
                 $i++
                 try {
-                    $NotAvailable = Get-ADUser - -Filter {UserPrincipalName -eq $User$i} 
+                    $NotAvailable = Get-ADUser - -Filter {UserPrincipalName -eq $User$i} -Server $Domain
                 }
                 catch {
                     [PSCustomObject]@{
@@ -61,4 +62,4 @@ function Request-UserPrincipalName {
     }
 }
 
-Request-UserPrincipalName -UserPrincipalName 'DanPark', 'TedSdoukos','DanPark1','Ted'
+Request-UserPrincipalName -UserPrincipalName 'DanPark@Contoso.local', 'TedSdoukos@contoso.local'
