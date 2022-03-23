@@ -5,8 +5,8 @@ function Request-UserPrincipalName {
     .DESCRIPTION
         Checks for existence of UserPrincipalName and increments until if finds an available option.
     .EXAMPLE
-        PS C:\> Request-UserPrincipalName -UserPrincipalName 'DanPark', 'TedSdoukos'
-        Gets available names in AD based off the names DanPark and TedSdoukos
+        PS C:\> Request-UserPrincipalName -UserPrincipalName 'DanPark@Contoso.local', 'TedSdoukos@Contoso.local'
+        Gets available names in AD based off the names DanPark@Contoso.local and TedSdoukos@Contoso.local
     .NOTES
         Author: Ted Sdoukos
         Date Created: March 18, 2022
@@ -23,43 +23,36 @@ function Request-UserPrincipalName {
     #>
     [CmdletBinding()]
     param (
-        [ValidatePattern("^.+@.+$")]
+        [ValidatePattern('^.+@.+$')]
         [string[]]$UserPrincipalName,
         $Domain = $env:USERDNSDOMAIN
     )
     process {
         foreach ($User in $UserPrincipalName) {
-            try {
-                $NotAvailable = Get-ADUser -Filter {UserPrincipalName -eq $UserPrincipalName} -Server $Domain
-            }
-            catch {
+            $Matches = $null
+            $null = $User -match '(.+)(@.+)'
+            $UserNameTry = "$($Matches[1])$($Matches[2])"
+            if (-not(Get-ADUser -Filter { UserPrincipalName -eq $UserNameTry } -Server $Domain)) {
                 [PSCustomObject]@{
-                    'UserPrincipalName' = $User
+                    'UserPrincipalName' = $UserNameTry
                 }
                 Continue
             }
-            If($User -match '\d+$')
-            {
-                $i = [int]$Matches[0]
-                $Matches = $null
-            }
             else {
-                $i = 0
-            }
-            while ($NotAvailable) {
-                $NotAvailable = $null
-                $i++
-                try {
-                    $NotAvailable = Get-ADUser - -Filter {UserPrincipalName -eq $User$i} -Server $Domain
+                If ($Matches[1] -match '\d+$') {
+                    $i = [int]$Matches[0]
                 }
-                catch {
-                    [PSCustomObject]@{
-                        'UserPrincipalName' = "$User$i"
-                    }
+                else {
+                    $i = 0
                 }
-            }
+                do {
+                    $i++
+                    $UserNameTry = "$($Matches[1])$i$($Matches[2])"
+                } until (-not(Get-ADUser -Filter { UserPrincipalName -eq $UserNameTry } -Server $Domain))
+                [PSCustomObject]@{
+                    'UserPrincipalName' = $UserNameTry
+                }
+            }   
         }
     }
 }
-
-Request-UserPrincipalName -UserPrincipalName 'DanPark@Contoso.local', 'TedSdoukos@contoso.local'
