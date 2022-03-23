@@ -34,7 +34,8 @@ function Request-UserPrincipalName {
             $UserNameTry = "$($Matches[1])$($Matches[2])"
             if (-not(Get-ADUser -Filter { UserPrincipalName -eq $UserNameTry } -Server $Domain)) {
                 [PSCustomObject]@{
-                    'UserPrincipalName' = $UserNameTry
+                    'RequestedUserPrincipalName' = $User
+                    'AvailableUserPrincipalName' = $UserNameTry
                 }
                 Continue
             }
@@ -50,7 +51,8 @@ function Request-UserPrincipalName {
                     $UserNameTry = "$($Matches[1])$i$($Matches[2])"
                 } until (-not(Get-ADUser -Filter { UserPrincipalName -eq $UserNameTry } -Server $Domain))
                 [PSCustomObject]@{
-                    'UserPrincipalName' = $UserNameTry
+                    'RequestedUserPrincipalName' = $User
+                    'AvailableUserPrincipalName' = $UserNameTry
                 }
             }   
         }
