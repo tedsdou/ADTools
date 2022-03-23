@@ -33,7 +33,10 @@ function Request-RecipientName {
             }
             catch {
                 Write-Verbose -Message "$Email is available"
-                [PSCustomObject]@{'UserEmailAddress' = $Email }
+                [PSCustomObject]@{
+                    'RequestedRecipientName' = $Email
+                    'AvailableRecipientName' = $Email 
+                }
                 Continue
             }
             Write-Verbose -Message "NotAvailable: $NotAvailable"
@@ -54,7 +57,10 @@ function Request-RecipientName {
                     $NotAvailable = Get-Recipient -Identity $NewEmail -ResultSize Unlimited -ErrorAction stop
                 }
                 catch {
-                    [PSCustomObject]@{'UserEmailAddress' = $NewEmail }
+                    [PSCustomObject]@{
+                        'RequestedRecipientName' = $Email
+                        'AvailableRecipientName' = $NewEmail
+                    }
                 }
             }
         }
