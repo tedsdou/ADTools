@@ -60,5 +60,3 @@ function Request-RecipientName {
         }
     }
 }
-
-Request-RecipientName -EmailAddress 'ted@gadgetzy.com' -Verbose
