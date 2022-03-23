@@ -5,7 +5,7 @@ function Request-RecipientName {
     .DESCRIPTION
         Checks for existence of RecipientName and increments until if finds an available option.
     .EXAMPLE
-        PS C:\> Request-RecipientName -RecipientName 'DanPark@contoso.local', 'TedSdoukos@contoso.local'
+        PS C:\> Request-RecipientName -EmailAddress 'DanPark@contoso.local', 'TedSdoukos@contoso.local'
         Gets available names in AD based off the names DanPark@contoso.local and TedSdoukos@contoso.local
     .NOTES
         Author: Ted Sdoukos
