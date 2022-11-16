@@ -48,7 +48,7 @@ Function Get-LocalGroup {
                 }
             }
             Catch {
-                Write-Warning  "$($Computer): $_"
+                Write-Warning -Message  "$($Computer): $_"
             }
         }
     }
