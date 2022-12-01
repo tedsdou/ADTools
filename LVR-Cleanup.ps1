@@ -6,8 +6,7 @@
 #>
 
 #List all of the the legacy members and their associated group
-$group = Get-ADGroup -Filter * |
-Get-ADReplicationAttributeMetadata  -Properties Member -ShowAllLinkedValues |
+$group = Get-ADGroup -Filter * | Get-ADReplicationAttributeMetadata  -Properties Member -ShowAllLinkedValues |
 Where-Object { $_.Version -eq 0 } | Select-Object @{n = 'LEGACY'; e = { $_.AttributeValue } }, @{n = 'Group'; e = { $_.Object } }
 
 Foreach ($g in $group) {
